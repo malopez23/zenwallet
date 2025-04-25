@@ -1,119 +1,117 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-const TransactionForm = ({ onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    date: '',
-    description: '',
-    category: '',
-    type: 'expense',
-    value: '',
-  });
+const TransactionForm = ({ onClose, onSubmit, initialData }) => {
+  const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [type, setType] = useState('expense');
+  const [value, setValue] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // Preencher os campos com os dados da transação ao editar
+  useEffect(() => {
+    if (initialData) {
+      setDate(initialData.date);
+      setDescription(initialData.description);
+      setCategory(initialData.category);
+      setType(initialData.type);
+      setValue(initialData.value);
+    }
+  }, [initialData]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData); // Chama a função onSubmit com os dados do formulário
+    const newTransaction = {
+      date,
+      description,
+      category,
+      type,
+      value: parseFloat(value),
+    };
+    onSubmit(newTransaction);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Nova Transação</h2>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-800">
-            <X size={24} />
-          </button>
-        </div>
-
+        <h2 className="text-xl font-semibold mb-4">
+          {initialData ? 'Editar Transação' : 'Nova Transação'}
+        </h2>
         <form onSubmit={handleSubmit}>
-          {/* Data */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Data</label>
+            <label className="block text-sm font-medium text-gray-700">Data</label>
             <input
               type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-600"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="mt-1 p-2 border rounded-md w-full"
               required
             />
           </div>
-
-          {/* Descrição */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-gray-700">Descrição</label>
             <input
               type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Ex.: Supermercado"
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-600"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="mt-1 p-2 border rounded-md w-full"
               required
             />
           </div>
-
-          {/* Categoria */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Categoria</label>
+            <label className="block text-sm font-medium text-gray-700">Categoria</label>
             <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-600"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="mt-1 p-2 border rounded-md w-full"
               required
             >
-              <option value="">Selecione uma categoria</option>
+              <option value="" disabled>Selecione uma categoria</option>
               <option value="alimentacao">Alimentação</option>
               <option value="transporte">Transporte</option>
-              <option value="moradia">Moradia</option>
               <option value="lazer">Lazer</option>
+              <option value="saude">Saúde</option>
               <option value="outros">Outros</option>
             </select>
           </div>
-
-          {/* Tipo */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Tipo</label>
+            <label className="block text-sm font-medium text-gray-700">Tipo</label>
             <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-600"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="mt-1 p-2 border rounded-md w-full"
               required
             >
               <option value="expense">Despesa</option>
               <option value="income">Renda</option>
             </select>
           </div>
-
-          {/* Valor */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Valor (R$)</label>
+            <label className="block text-sm font-medium text-gray-700">Valor</label>
             <input
               type="number"
-              name="value"
-              value={formData.value}
-              onChange={handleChange}
-              placeholder="0.00"
               step="0.01"
-              min="0"
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-600"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="mt-1 p-2 border rounded-md w-full"
               required
             />
           </div>
-
-          {/* Botões */}
           <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+ степ="0.01"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
             >
               Cancelar
             </button>
@@ -121,7 +119,7 @@ const TransactionForm = ({ onClose, onSubmit }) => {
               type="submit"
               className="px-4 py-2 bg-teal-700 text-white rounded-md hover:bg-teal-800"
             >
-              Adicionar
+              {initialData ? 'Salvar' : 'Adicionar'}
             </button>
           </div>
         </form>

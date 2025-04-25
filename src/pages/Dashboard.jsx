@@ -1,33 +1,82 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TransactionForm from '../components/TransactionForm';
 import SummaryCard from '../components/SummaryCard';
 
 const Dashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(() => {
+    // Carregar monthlyIncome do localStorage ao inicializar
+    const savedIncome = localStorage.getItem('zenwallet_monthlyIncome');
+    return savedIncome ? parseFloat(savedIncome) : 0;
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState(() => {
+    // Carregar transações do localStorage ao inicializar
+    const savedTransactions = localStorage.getItem('zenwallet_transactions');
+    return savedTransactions ? JSON.parse(savedTransactions) : [];
+  });
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
-  // Função para adicionar uma nova transação
-  const addTransaction = (newTransaction) => {
-    setTransactions((prev) => [...prev, newTransaction]);
-    setIsModalOpen(false); // Fecha o modal após adicionar
+  // Salvar monthlyIncome no localStorage sempre que ele mudar
+  useEffect(() => {
+    localStorage.setItem('zenwallet_monthlyIncome', monthlyIncome);
+  }, [monthlyIncome]);
+
+  // Salvar transações no localStorage sempre que elas mudarem
+  useEffect(() => {
+    localStorage.setItem('zenwallet_transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  // Função para adicionar ou editar uma transação
+  const addOrEditTransaction = (transaction) => {
+    if (editingTransaction !== null) {
+      // Editar transação existente
+      setTransactions((prev) =>
+        prev.map((t, index) =>
+          index === editingTransaction.index ? transaction : t
+        )
+      );
+      setEditingTransaction(null);
+    } else {
+      // Adicionar nova transação
+      setTransactions((prev) => [...prev, transaction]);
+    }
+    setIsModalOpen(false); // Fecha o modal após adicionar/editar
   };
 
+  // Função para iniciar a edição de uma transação
+  const startEditing = (index) => {
+    setEditingTransaction({ ...transactions[index], index });
+    setIsModalOpen(true);
+  };
+
+  // Função para excluir uma transação
+  const deleteTransaction = (index) => {
+    setTransactions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Filtrar transações pelo mês selecionado
+  const filteredTransactions = transactions.filter((transaction) => {
+    const transactionMonth = parseInt(transaction.date.split('-')[1]); // Extrai o mês da data (ex.: "2025-04-24" -> 4)
+    return transactionMonth === selectedMonth;
+  });
+
   // Calcular valores para os cards
-  const totalIncome = transactions
+  const additionalIncome = filteredTransactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + parseFloat(t.value || 0), 0);
 
-  const totalExpenses = transactions
+  const totalIncome = monthlyIncome + additionalIncome; // Soma monthlyIncome com transações de renda
+
+  const totalExpenses = filteredTransactions
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + parseFloat(t.value || 0), 0);
 
   const balance = totalIncome - totalExpenses;
 
-  // Calcular a porcentagem de despesas em relação à renda mensal
-  const expensePercentage = monthlyIncome > 0 ? (totalExpenses / monthlyIncome) * 100 : 0;
+  // Calcular a porcentagem de despesas em relação à renda total
+  const expensePercentage = totalIncome > 0 ? (totalExpenses / totalIncome) * 100 : 0;
 
   // Função para formatar a data (ex.: "2025-05-23" -> "23/05/2025")
   const formatDate = (dateString) => {
@@ -49,7 +98,10 @@ const Dashboard = () => {
           <h1 className="text-3xl font-semibold text-teal-700">Dashboard</h1>
           <button
             className="bg-teal-700 text-white px-4 py-2 rounded-md hover:bg-teal-800"
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditingTransaction(null); // Limpa edição ao abrir para nova transação
+              setIsModalOpen(true);
+            }}
           >
             + Nova Transação
           </button>
@@ -101,14 +153,14 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {transactions.length === 0 ? (
+              {filteredTransactions.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="p-2 md:p-3 text-center text-gray-500 text-sm">
-                    Nenhuma transação registrada.
+                    Nenhuma transação registrada neste mês.
                   </td>
                 </tr>
               ) : (
-                transactions.map((transaction, index) => (
+                filteredTransactions.map((transaction, index) => (
                   <tr key={index} className="border-t border-gray-200">
                     <td className="p-2 md:p-3 text-gray-800 text-sm">{formatDate(transaction.date)}</td>
                     <td className="p-2 md:p-3 text-gray-800 text-sm">{transaction.description}</td>
@@ -117,10 +169,23 @@ const Dashboard = () => {
                       {transaction.type === 'income' ? 'Renda' : 'Despesa'}
                     </td>
                     <td className="p-2 md:p-3 text-gray-800 text-sm">
-                      R$ {parseFloat(transaction.value).toFixed(2)}
+                      <span className={`px-2 py-1 rounded-md ${transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'}`}>
+                        R$ {parseFloat(transaction.value).toFixed(2)}
+                      </span>
                     </td>
                     <td className="p-2 md:p-3 text-gray-800 text-sm">
-                      <span className="text-gray-500">Ações</span>
+                      <button
+                        className="text-green-600 mr-2"
+                        onClick={() => startEditing(index)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="text-red-600"
+                        onClick={() => deleteTransaction(index)}
+                      >
+                        Excluir
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -132,8 +197,12 @@ const Dashboard = () => {
         {/* Modal do Formulário de Transações */}
         {isModalOpen && (
           <TransactionForm
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={addTransaction}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditingTransaction(null);
+            }}
+            onSubmit={addOrEditTransaction}
+            initialData={editingTransaction}
           />
         )}
       </div>
