@@ -26,6 +26,9 @@ const Dashboard = () => {
 
   const balance = totalIncome - totalExpenses;
 
+  // Calcular a porcentagem de despesas em relação à renda mensal
+  const expensePercentage = monthlyIncome > 0 ? (totalExpenses / monthlyIncome) * 100 : 0;
+
   // Função para formatar a data (ex.: "2025-05-23" -> "23/05/2025")
   const formatDate = (dateString) => {
     const [year, month, day] = dateString.split('-');
@@ -42,10 +45,10 @@ const Dashboard = () => {
       />
       <div className="flex-1 p-4 md:p-6 ml-0 md:ml-64 mt-16 md:mt-0">
         {/* Cabeçalho */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 mt-0 md:mt-10 gap-4 md:gap-0">
+        <div className="flex justify-between items-center mb-6 mt-0 md:mt-10">
           <h1 className="text-3xl font-semibold text-teal-700">Dashboard</h1>
           <button
-            className="bg-teal-700 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md hover:bg-teal-800 text-sm md:text-base w-full md:w-auto"
+            className="bg-teal-700 text-white px-4 py-2 rounded-md hover:bg-teal-800"
             onClick={() => setIsModalOpen(true)}
           >
             + Nova Transação
@@ -75,9 +78,18 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Resumo de Despesas */}
+        <div className="bg-white p-4 md:p-6 rounded-md shadow mb-8">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Resumo de Despesas</h2>
+          <div className="h-48 bg-gray-100 rounded-md mb-4"></div>
+          <p className="text-sm text-gray-600">
+            Você gastou {expensePercentage.toFixed(1)}% da sua renda mensal
+          </p>
+        </div>
+
         {/* Tabela de Transações */}
-        <div className="bg-white rounded-md shadow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-          <table className="min-w-[600px]">
+        <div className="bg-white rounded-md shadow overflow-x-auto">
+          <table className="min-w-full">
             <thead>
               <tr className="bg-gray-50">
                 <th className="p-2 md:p-3 text-left text-xs md:text-sm font-medium text-gray-600">Data</th>
@@ -99,7 +111,7 @@ const Dashboard = () => {
                 transactions.map((transaction, index) => (
                   <tr key={index} className="border-t border-gray-200">
                     <td className="p-2 md:p-3 text-gray-800 text-sm">{formatDate(transaction.date)}</td>
-                    <td className="p-2 md:p-3 text-gray-800 text-sm whitespace-normal">{transaction.description}</td>
+                    <td className="p-2 md:p-3 text-gray-800 text-sm">{transaction.description}</td>
                     <td className="p-2 md:p-3 text-gray-800 text-sm capitalize">{transaction.category}</td>
                     <td className="p-2 md:p-3 text-gray-800 text-sm capitalize">
                       {transaction.type === 'income' ? 'Renda' : 'Despesa'}
