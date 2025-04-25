@@ -71,6 +71,12 @@ const TransactionForm = ({ onClose, onSubmit, initialData }) => {
               <option value="lazer">Lazer</option>
               <option value="saude">Saúde</option>
               <option value="outros">Outros</option>
+              <option value="moradia">Moradia</option>
+              <option value="educacao">Educação</option>
+              <option value="vestuario">Vestuário</option>
+              <option value="viagem">Viagem</option>
+              <option value="investimentos">Investimentos</option>
+              <option value="doacoes">Doações</option>
             </select>
           </div>
           <div className="mb-4">
@@ -93,17 +99,6 @@ const TransactionForm = ({ onClose, onSubmit, initialData }) => {
               value={value}
               onChange={(e) => setValue(e.target.value)}
               className="mt-1 p-2 border rounded-md w-full"
-              required
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
- степ="0.01"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
               required
             />
           </div>
